@@ -1,5 +1,6 @@
 (function() {
-  var zis = [];
+  var width = 150;
+  var height = 140;
   var numkey = ";',./";
   var nums = ['1', '2', '3','4','5','6','7','8','9', '0'];
   var symbols = [' ', ':', '?', '"', '<', '>', '!'];
@@ -230,9 +231,25 @@
   function setPosition() {
     var position = $(targetElmt).caret('pos');
     var offset = $(targetElmt).caret('offset');
+    var top = offset.top + offset.height;
+    var left = offset.left;
+
+    if((top + height) > window.innerHeight) {
+      top = top - height - 20;
+    } else {
+      top = top + 10;
+    }
+
+    if((left + width) > window.innerWidth) {
+      left = left - width - 5;
+    } else {
+      left = left + 5;
+    }
+
+    console.log(top, left);
     $(typearea).offset({
-      top: offset.top + offset.height + 5,
-      left: offset.left
+      top: top,
+      left: left,
     });
   }
 })();
