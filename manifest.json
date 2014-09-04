@@ -1,0 +1,14 @@
+{
+  "name": "quotor",
+  "version": "0.1",
+  "description": "A web Tool",
+  "manifest_version": 2,
+  "content_scripts":[
+    {
+      "matches": ["http://*/*"],
+      "css":["app.css", "fonts.css"],
+      "js":[ "jquery.js", "caret.js", "caret-util.js", "underscore.js", "app.js"]
+    }
+  ]
+}    
+

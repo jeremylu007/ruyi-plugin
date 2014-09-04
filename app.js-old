@@ -1,0 +1,214 @@
+(function() {
+  var zis = [];
+  var numkey = ";',./";
+  var nums = ['1', '2', '3','4','5','6','7','8','9', '0'];
+  var elmt = null;
+  var typeValue = null;
+  var currPage = 0;
+  var position = 0;
+  var typearea = document.createElement('div');
+  typearea.id = 'im_typearea';
+  
+  var detector = document.createElement('span');
+  detector.id = 'detector';
+  console.log('load.....');
+ 
+  // typebar.innerText = "hello\n"
+  // houxuan.innerText = "1.单刀赴会\n 2.单刀直入\n 3.单车闯关 \n 4.单项赛事 \n 5. 单元测试";
+// $(typearea).append(typebar);
+// $(typearea).append(houxuan);
+typeHtml = "<input type='text' id='im_typebar'/><textarea class='font-hei' id='im_houxuan' readonly='true'</texta rea>";
+typearea.innerHTML = typeHtml;
+$('body').append(typearea);
+$("#im_typearea").hide();
+$('body').keyup(function(event) {
+  if(event.which === 27) { // esc
+    hide();
+  }
+});
+$('body').keypress(function(event){
+  if(event.target.id === 'im_typebar') {
+    return;
+  }
+  if(event.which == 13) {
+    return;
+  }
+  var c = String.fromCharCode(event.which);
+  console.log(c);
+  var symbols = [' ', ':', '?', '"', '<', '>', '!'];
+  if(numkey.indexOf(c) >= 0 || symbols.indexOf(c) >= 0 || nums.indexOf(c) >= 0) {
+    return;
+  }
+  console.log('body keypress');
+  elmt = event.target;
+  if(elmt.tagName === 'INPUT' || elmt.tagName === 'TEXTAREA' || $(elmt).attr('contenteditable') === 'true') {
+    if(elmt.id !== 'im_typebar') {
+      show();
+      position = $(elmt).caret('pos');
+      offset = $(elmt).caret('offset');
+      $(typearea).offset({
+        top: offset.top + offset.height + 5,
+        left: offset.left
+      });
+      // addOffsetDetector();
+      // console.log($('#detector').offset());
+      // bind();
+      event.preventDefault();
+      $("#im_typebar").focus();
+      $("#im_typebar").val(String.fromCharCode(event.which));
+      typeValue = $("#im_typebar").val();
+      $("#im_typebar").trigger('type');
+    }
+  }
+});
+// var addOffsetDetector = function() {
+//   text = elmt.innerText;
+//   $(elmt).append(detector);
+// }
+var input = function(value) {
+  console.log('input', value);
+
+  $.ajax({
+    url: 'http://localhost:1337/jian/update/' + value + '/0'
+  }).done(function(result) {
+    console.log('updated');
+  });
+
+  var inputValue = elmtValue();
+  // $(elmt).setCaretPosition(position);
+  // $(elmt).insertAtCaret(value);
+  console.log(inputValue.length, position);
+  if(inputValue.length === position) {
+    elmtValue(inputValue + value);
+    $(elmt).focus();
+    $(elmt).caret('pos', elmtValue().length);
+    // var el = elmt;
+    // var range = document.createRange();
+    // var sel = window.getSelection();
+    // range.setStart(el.childNodes[1], 2);
+    // range.collapse(true);
+    // sel.removeAllRanges();
+    // sel.addRange(range);
+    // $(elmt).setCaretPosition(elmtValue().length);
+  } else {
+    elmtValue(inputValue.substr(0, position) + value + inputValue.substr(position, inputValue.length - position));
+    $(elmt).focus();
+    $(elmt).caret('pos', position + value.length);
+    // $(elmt).setCaretPosition(position + value.length);
+  }
+  $("#im_typebar").val('');
+  $("#im_houxuan").val('');
+  hide();
+
+}
+var elmtValue = function(value) {
+  if(_.isString(value)) {
+    if($(elmt).attr('contenteditable') === 'true') {
+      elmt.innerText = value;
+    } else {
+      $(elmt).val(value);
+    }
+  } else {
+    if($(elmt).attr('contenteditable') === 'true') {
+      return elmt.innerText;
+    } else {
+      return $(elmt).val();
+    }
+  }
+}
+var hide = function() {
+  $("#im_typearea").hide();
+}
+var show = function() {
+  $("#im_typearea").show();
+}
+var bind = function() {
+  $(elmt).keypress(function(event) {
+    elmt = event.target;
+    console.log($(elmt).caret('offset'));
+    console.log('pressed', event.which);
+    event.preventDefault();
+    console.log(String.fromCharCode(event.which));
+    $("#im_typebar").focus();
+    $("#im_typebar").val(String.fromCharCode(event.which));
+    $("#im_typebar").change();
+  });
+}
+$("#im_typebar").keyup(function(event) {
+  console.log('keyup', event.which);
+  if(event.which === 13) {
+    input(typeValue);
+  }
+  if(typeValue !== $("#im_typebar").val()) {
+    typeValue = $("#im_typebar").val();
+    $("#im_typebar").trigger('type');
+  }
+});
+$("#im_typebar").on('type', function() {
+  console.log('typebar--change');
+    jian = $("#im_typebar").val();
+    if(jian === '') {
+      hide();
+      $(elmt).focus();
+      return;
+    }
+    if(jian.slice(-1) === ' ') {
+      console.log('space');
+      input(zis[0].cixing);
+      return;
+    } else if((num = nums.indexOf(jian.slice(-1))) >= 0) {
+      console.log('num', num);
+      if(num > 0 && num < 6) {
+        input(zis[num].cixing);
+      } 
+      return;
+    }
+    $.ajax({
+      url: 'http://localhost:1337/jian/' + $("#im_typebar").val() + '/' + currPage
+    }).done(function(result) {
+      if(result === '404') {
+        return;
+      }
+      zis = result;
+      zis = JSON.parse(zis);
+      if(zis.length === 0) {
+        $("#im_houxuan").val('');
+        return;
+      // } else if (zis.length === 1) {
+      //   console.log('input the only');
+      //   input(zis[0].cixing);
+      } else {
+        $("#im_houxuan").val('');
+        content = '';
+        zis.forEach(function(zi, index) {
+          hint = zi.jian.split($("#im_typebar").val())[1];
+          zitiao = index + 1 + ": " + zi.cixing;
+          content += (zitiao + "\n");
+        });
+        $("#im_houxuan").val(content);
+      }
+    });
+  });
+function focusCampo(id){
+    var inputField = document.getElementById(id);
+    if (inputField != null && inputField.value.length != 0){
+        if (inputField.createTextRange){
+            var FieldRange = inputField.createTextRange();
+            FieldRange.moveStart('character',inputField.value.length);
+            FieldRange.collapse();
+            FieldRange.select();
+        }else if (inputField.selectionStart || inputField.selectionStart == '0') {
+            var elemLen = inputField.value.length;
+            inputField.selectionStart = elemLen;
+            inputField.selectionEnd = elemLen;
+            inputField.focus();
+        }
+    }else{
+        inputField.focus();
+    }
+}
+function surf(url) {
+}
+function execute(cmd) {
+}
+}).call(this);

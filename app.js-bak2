@@ -1,0 +1,209 @@
+(function() {
+  var zis = [];
+  var numkey = ";',./";
+  var nums = ['1', '2', '3','4','5','6','7','8','9', '0'];
+  var symbols = [' ', ':', '?', '"', '<', '>', '!'];
+  var typearea = document.createElement('div');
+  var currPage = 0;
+  var position = 0;
+  var targetElmt = null;
+  var targetElmtType = 0;
+  var working = true;
+  var inputing = false;
+  var typing = false;
+  var typeValue = '';
+  var zis = {};
+
+  initTypearea(typearea);
+
+  $('body').mousedown(function(event) {
+    console.log('mouse down', event.which)
+  });
+
+  $('body').keyup(function(event) {
+    console.log('body keyup', event.which);
+
+    checkInputing(event);
+
+    if(event.which === 27) { // esc
+      hide();
+    }
+
+    if(event.which === 8) {  // backspace
+      typeValue = typeValue.slice(0, typeValue.length - 1);
+      if(typeValue === '') {
+        hide();
+        return;
+      }
+
+      refresh();
+    }
+
+    if(event.which === 120) { // F9
+      hide();
+      working = !working;
+      console.log('switch working', working);
+    }
+
+  });
+
+  $('body').keypress(function(event){
+    console.log('body keypress', event.which);
+    // if(!working) { return; }
+  });
+
+  function checkInputing(event) {
+    // console.log('checkInputing', inputing);
+    if(!inputing) {
+      console.log('input judge', event.which);
+      var targetElmt = event.target;
+      var plainInput = (targetElmt.tagName === 'INPUT' || targetElmt.tagName === 'TEXTAREA');
+      var divInput = ($(targetElmt).attr('contenteditable') === 'true');
+      if(!plainInput && !divInput) {
+        return;
+      } else {
+        if(plainInput) {
+          targetElmtType = 0;
+        } else {
+          targetElmtType = 1;
+        }
+        inputing = true;
+        $(targetElmt).keypress(onType);
+        onType(event);
+        $(targetElmt).blur(function() { inputing = false; });
+      }
+    }
+  }
+
+  function onType(event) {
+    if(!working) { return; }
+    var c = String.fromCharCode(event.which);
+    console.log('on type', c);
+
+    if(!typing) {
+      if(numkey.indexOf(c) >= 0 || symbols.indexOf(c) >= 0 || nums.indexOf(c) >= 0) {
+        return;
+      } else {
+        show();
+      }
+    }
+
+    event.preventDefault();
+
+    if(event.which === 13) {
+      insert(typeValue);
+      hide();
+      return;
+    } else if(c === ' ') {
+      insert(zis[0].cixing);
+      hide();
+      return;
+    } else {
+      typeValue += c;
+    }
+    refresh();
+  }
+
+  function refresh() {
+    setPosition();
+
+    $("#im_typebar").val(typeValue);
+
+    $.ajax({
+      url: 'http://localhost:1337/jian/' + typeValue + '/' + currPage
+    }).done(function(result) {
+      if(result === '404') {
+        return;
+      }
+      zis = result;
+      zis = JSON.parse(zis);
+      if(zis.length === 0) {
+        $("#im_houxuan").val('');
+        return;
+      } else {
+        $("#im_houxuan").val('');
+        content = '';
+        zis.forEach(function(zi, index) {
+          hint = zi.jian.split($("#im_typebar").val())[1];
+          zitiao = index + 1 + ": " + zi.cixing;
+          content += (zitiao + "\n");
+        });
+      $("#im_houxuan").val(content);
+    }
+    });
+  }
+
+  function hide() {
+    typing = false;
+    $(typearea).hide();
+  }
+
+  function show() {
+    typing = true;
+    $(typearea).show();
+  }
+
+  function insert(val) {
+    if(targetElmtType === 0) {
+      insertInput(val);
+    } else {
+      insertDiv(val);
+    }
+  }
+
+  function insertInput(element, text) {
+    if (document.selection) {
+      element.focus();
+      var sel = document.selection.createRange();
+      sel.text = text;
+      element.focus();
+    } else if (element.selectionStart || element.selectionStart === 0) {
+      var startPos = element.selectionStart;
+      var endPos = element.selectionEnd;
+      var scrollTop = element.scrollTop;
+      var preText = element.value.substring(0, startPos);
+      var backText = element.value.substring(endPos, element.value.length);
+      element.value =  preText + text + backText;
+      element.focus();
+      element.selectionStart = startPos + text.length;
+      element.selectionEnd = startPos + text.length;
+      element.scrollTop = scrollTop;
+    } else {
+      element.value += text;
+      element.focus();
+    }
+  }
+
+  function insertDiv(text) {
+    var sel, range;
+    var node = document.createTextNode(text);
+    sel = window.getSelection();
+    if (sel.getRangeAt && sel.rangeCount) {
+      var range = sel.getRangeAt(0);
+      range.collapse(false);
+      range.insertNode(node);
+      range = range.cloneRange();
+      range.selectNodeContents(node);
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+  }
+
+  function initTypearea(ta) {
+    ta.id = 'im_typearea';
+    var typeHtml = "<input type='text' id='im_typebar'/><textarea class='font-hei' id='im_houxuan' readonly='true'</texta rea>";
+    ta.innerHTML = typeHtml;
+    $('body').append(ta);
+    $(ta).hide();
+  }
+
+  function setPosition() {
+    // var position = $(targetElmt).caret('pos');
+    // var offset = $(targetElmt).caret('offset');
+    // $(typearea).offset({
+    //   top: offset.top + offset.height + 5,
+    //   left: offset.left
+    // });
+  }
+})();

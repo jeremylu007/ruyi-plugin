@@ -1,0 +1,35 @@
+#im_typearea {
+  /* background-color: rgb(0, 0, 255); */
+  z-index: 99999997;
+  /* height: 200px; */
+  position: absolute;
+  /* margin: 0 0 20px 0; */
+  /* color: #eeeeee; */
+  /* font-family: "League Gothic", Impact, sans-serif; */
+  width: 130px;
+  /* text-transform: uppercase; */
+}
+#im_typebar, #im_houxuan {
+  background-color: #622A1D;
+  color: #eeeeee;
+  text-align: left;
+  padding: 5px;
+  letter-spacing: 0.15em;
+  text-shadow: 0px 0px 6px rgba(0, 0, 0, 0.2);
+  font-size: 15px;
+  border: none;
+  max-width: 130px;
+  /* background: -webkit-radial-gradient(center, circle cover, #555a5f 0%, #1c1e20 100%); */
+  
+}
+#im_typebar {
+  line-height: 1em;
+  border-bottom: 1px solid;
+}
+
+#im_houxuan {
+  height: 7em;
+  line-height: 1.3em;
+  overflow: hidden;
+  resize: none;
+}
