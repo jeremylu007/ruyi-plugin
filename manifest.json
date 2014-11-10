@@ -1,14 +1,25 @@
 {
   "name": "quotor",
-  "version": "0.1",
+  "version": "0.0",
   "description": "A web Tool",
   "manifest_version": 2,
-  "content_scripts":[
-    {
-      "matches": ["http://*/*"],
+  "background": {"scripts": ["app.js"]},
+  // "permissions": [ "cookies", "tabs", "contextMenus", "webRequest","http://*/*", "https://*/*"],
+  "permissions": [
+    "tabs",
+    "bookmarks",
+    "history",
+    "clipboardRead",
+    "storage",
+    "<all_urls>"
+  ],
+  "content_scripts":[{
+      // "matches": ["http://*/*", "https://*/*"],
+      "matches": ["<all_urls>"],
       "css":["app.css", "fonts.css"],
       "js":[ "jquery.js", "caret.js", "caret-util.js", "underscore.js", "app.js"]
+      // "run_at": "document_start"
     }
   ]
-}    
+}
 

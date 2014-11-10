@@ -4,6 +4,10 @@
   var numkey = ";',./";
   var nums = ['1', '2', '3','4','5','6','7','8','9', '0'];
   var symbols = [' ', ':', '?', '"', '<', '>', '!'];
+  var symbolMap = {
+    ',': '，', '.': '。', ':': '：', ';': '；', '!': '！',
+    '?': '？', "'": '‘’', '"': '“”'
+  };
   var typearea = document.createElement('div');
   var currPage = 0;
   var position = 0;
@@ -15,8 +19,8 @@
   var paging = false;
   var typeValue = '';
   var zis = {};
-
-  initTypearea(typearea);
+  console.log('loaded!'); 
+  initTypearea();
 
   $('body').keyup(function(event) {
     // console.log('body keyup', event.which);
@@ -32,12 +36,19 @@
         $(targetElmt).keypress(onType);
       }
       working = !working;
-      console.log('switch working', working);
+      // console.log('switch working', working);
     }
+    // if(event.which === 65) {
+    //   var elmt = event.target;
+    //   var inputTags = ['INPUT', 'TEXTAREA'];
+    //   if((inputTags.indexOf(elmt.tagName) == -1) || ($(elmt).attr('contenteditable') === 'false')) {
+    //     kuai();
+    //   }
+    // }
   });
 
   $('body').keypress(function(event) {
-    // console.log('body keydown', event.which, working);
+    // console.log('body keypress', event.which, working);
     if(!working) { return; }
     checkInputing(event);
   });
@@ -79,7 +90,10 @@
         $(targetElmt).unbind('keypress');
         $(targetElmt).keypress(onType);
         onType(event);
-        $(targetElmt).blur(function() { inputing = false; });
+        $(targetElmt).blur(function() {
+          $(targetElmt).unbind('keypress');
+          inputing = false;
+        });
       }
     }
   }
@@ -89,7 +103,9 @@
 
     if(!typing) {
       if(numkey.indexOf(c) >= 0 || symbols.indexOf(c) >= 0 || nums.indexOf(c) >= 0) {
-        return;
+        event.preventDefault();
+        c = symbolMap[c] || c;
+        return insertTxt(c);
       } else if(event.which === 13) {
         return;
       }
@@ -98,7 +114,7 @@
 
     event.preventDefault();
     if(event.which === 13) {
-      insert(typeValue);
+      insertTxt(typeValue);
       return;
     } else if(event.which === 91) {
       paging = true;
@@ -112,14 +128,12 @@
     } else if(nums.indexOf(c) > -1) {
       c = parseInt(c);
       if(0 < c < 6) {
-        insert(zis[c-1].cixing);
-        return;
+        return insert(zis[c-1].cixing);
       } else {
         return;
       }
     } else if(c === ' ') {
-      insert(zis[0].cixing);
-      return;
+      return insert(zis[0].cixing);
     } else {
       if(paging) {
         currPage = 0;
@@ -136,7 +150,7 @@
     $("#im_typebar").val(typeValue);
 
     $.ajax({
-      url: 'http://localhost:1337/jian/' + typeValue + '/' + currPage
+      url: 'http://106.187.52.226:1336/jian/' + typeValue + '/' + currPage
     }).done(function(result) {
       if(result === '404') {
         return;
@@ -173,12 +187,24 @@
   }
 
   function insert(val) {
+    hide();
+    insertTxt(val);
+    updateFreq(val);
+  }
+
+  function insertTxt(val) {
     if(targetElmtType === 0) {
       insertInput(targetElmt, val);
     } else {
       insertDiv(val);
     }
-    hide();
+  }
+
+  function updateFreq(val) {
+    $.ajax({
+      url: 'http://106.187.52.226:1336/jian/update/' + val + '/0'
+    }).done(function(result) {
+    });
   }
 
   function insertInput(element, text) {
@@ -220,14 +246,14 @@
     }
   }
 
-  function initTypearea(ta) {
-    ta.id = 'im_typearea';
+  function initTypearea() {
+    typearea.id = 'im_typearea';
     var typeHtml = "<input type='text' id='im_typebar'/><textarea class='font-hei' id='im_houxuan' readonly='true'</texta rea>";
-    ta.innerHTML = typeHtml;
-    $('body').append(ta);
-    $(ta).hide();
+    typearea.innerHTML = typeHtml;
+    $('body').append(typearea);
+    $(typearea).hide();
   }
-
+  
   function setPosition() {
     var position = $(targetElmt).caret('pos');
     var offset = $(targetElmt).caret('offset');
@@ -246,10 +272,14 @@
       left = left + 5;
     }
 
-    console.log(top, left);
+    // console.log(top, left);
     $(typearea).offset({
       top: top,
       left: left,
     });
   }
 })();
+
+function kuai() {
+  window.open('http://106.187.52.226:8080/#servant?from=ext', '_blank', 'menubar=no,height=580,width=608,toolbar=no,scrollbar=no,status=no');
+}
